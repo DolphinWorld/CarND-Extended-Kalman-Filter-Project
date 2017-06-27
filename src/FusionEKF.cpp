@@ -88,10 +88,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float chi = measurement_pack.raw_measurements_[1];
       float phoDot = measurement_pack.raw_measurements_[2];
 
-      float x = pho * sin(chi);
-      float y = pho * cos(chi);
-      float vx = phoDot * sin(chi);
-      float vy = phoDot * cos(chi);
+      float x = pho * cos(chi);
+      float y = pho * sin(chi);
+      float vx = phoDot * cos(chi);
+      float vy = phoDot * sin(chi);
 
       ekf_.x_ << x, y, vx, vy;
       ekf_.x_ << x, y, vx, vy;
