@@ -20,6 +20,10 @@ FusionEKF::FusionEKF() {
   R_laser_ = MatrixXd(2, 2);
   R_radar_ = MatrixXd(3, 3);
   H_laser_ = MatrixXd(2, 4);
+
+  H_laser_ << 1,0,0,0,
+              0,1,0,0;
+
   Hj_ = MatrixXd(3, 4);
 
   //measurement covariance matrix - laser
@@ -32,25 +36,22 @@ FusionEKF::FusionEKF() {
         0, 0, 0.09;
 
   VectorXd x = VectorXd(4);
-  x << 0, 0, 0, 0;
 
   MatrixXd P = MatrixXd(4, 4);
   P << 1, 0, 0, 0,
        0, 1, 0, 0,
-       0, 0, 1000, 0,
-       0, 0, 0, 1000;
+       0, 0, 100000, 0,
+       0, 0, 0, 100000;
 
   MatrixXd F = MatrixXd(4, 4);
   F << 1, 0, 1, 0,
-              0, 1, 0, 1,
-              0, 0, 1, 0,
-              0, 0, 0, 1;
+       0, 1, 0, 1,
+       0, 0, 1, 0,
+       0, 0, 0, 1;
 
   MatrixXd H = MatrixXd(2, 4);
 
   MatrixXd R = MatrixXd(2, 2);
-  R << 0.0225, 0,
-          0, 0.0225;
 
   MatrixXd Q = MatrixXd(4, 4);
 
@@ -94,7 +95,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float vy = phoDot * sin(chi);
 
       ekf_.x_ << x, y, vx, vy;
-      ekf_.x_ << x, y, vx, vy;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
@@ -123,7 +123,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float noise_ax = 9;
   float noise_ay = 9;
 
-  float dt = measurement_pack.timestamp_ - previous_timestamp_;
+  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000;
 
   ekf_.F_(0, 2) = ekf_.F_(1, 3) = dt;
   previous_timestamp_ = measurement_pack.timestamp_;

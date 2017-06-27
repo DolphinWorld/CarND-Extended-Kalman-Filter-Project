@@ -29,7 +29,6 @@ void KalmanFilter::Predict() {
     P_ = F_ * P_ * Ft + Q_;
 }
 
-
 void KalmanFilter::calcKF(const VectorXd &z, const MatrixXd &z_pred) {
     VectorXd y = z - z_pred;
     MatrixXd Ht = H_.transpose();
@@ -50,16 +49,25 @@ void KalmanFilter::Update(const VectorXd &x) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &x) {
-  if (x_(0) == 0) {
-	x_(0) = 0.00000001; // avoid being 0
+  float pho = sqrt(x_(0) * x_(0) + x_(1) * x_(1));
+
+  float chi = atan2(x_(1), x_(0));
+
+  while (chi > M_PI) {
+	chi -= 2.* M_PI;
+  }
+  while (chi < -M_PI) {
+	chi += 2.* M_PI;
   }
 
-  float pho = sqrt(x_(0) * x_(0) + x_(1) * x_(1));
-  float theta = atan(x_(1) / x_(0));
-  float phodot = (x_(0) * x_(2) + x_(1) * x_(3)) / pho;
+  float phodot = 0;
+  if (pho != 0) {
+	// if pho == 0, means x_(0) and x_(1) == 0, so this fomular result is 0
+  	phodot = (x_(0) * x_(2) + x_(1) * x_(3)) / pho;
+  }
 
-  VectorXd z = VectorXd(3); // for pho, theta, phodot
-  z << pho, theta, phodot;
+  VectorXd z = VectorXd(3); 
+  z << pho, chi, phodot;
   calcKF(x,  z);
 }
 
