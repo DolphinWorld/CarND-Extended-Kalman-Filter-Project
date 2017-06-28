@@ -91,10 +91,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
       float x = pho * cos(chi);
       float y = pho * sin(chi);
-      float vx = phoDot * cos(chi);
-      float vy = phoDot * sin(chi);
 
-      ekf_.x_ << x, y, vx, vy;
+      ekf_.x_ << x, y, 0, 0;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
@@ -120,17 +118,17 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Update the process noise covariance matrix.
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
-  float noise_ax = 9.0;
-  float noise_ay = 9.0;
+  const float noise_ax = 9.0;
+  const float noise_ay = 9.0;
 
-  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+  const float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
 
   ekf_.F_(0, 2) = ekf_.F_(1, 3) = dt;
   previous_timestamp_ = measurement_pack.timestamp_;
 
-  float dt2 = dt * dt;
-  float dt3 = dt2 * dt;
-  float dt4 = dt2 * dt2;
+  const float dt2 = dt * dt;
+  const float dt3 = dt2 * dt;
+  const float dt4 = dt2 * dt2;
 
   ekf_.Q_ = MatrixXd(4, 4);
   ekf_.Q_ << dt4 / 4 * noise_ax, 0, dt3 / 2 * noise_ax, 0, 

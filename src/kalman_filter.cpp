@@ -57,17 +57,10 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
   VectorXd x = VectorXd(3); 
   x << pho, chi, phodot;
+  
   VectorXd y = z - x;
-
-  chi = y(1);
-
-  while (chi > M_PI) {
-    chi -= 2.* M_PI;
-  }
-  while (chi < -M_PI) {
-    chi += 2.* M_PI;
-  }
-  y(1) = chi;
+  
+  y(1) = atan2(sin(y(1)), cos(y(1)));
   calcKF(y);
 }
 
