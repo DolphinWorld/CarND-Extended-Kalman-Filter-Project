@@ -11,8 +11,6 @@ KalmanFilter::KalmanFilter() {}
 
 KalmanFilter::~KalmanFilter() {}
 
-void calcKF(const VectorXd &z, const MatrixXd &z_pred);
-
 void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
                         MatrixXd &H_in, MatrixXd &R_in, MatrixXd &Q_in) {
   x_ = x_in;
@@ -29,8 +27,7 @@ void KalmanFilter::Predict() {
     P_ = F_ * P_ * Ft + Q_;
 }
 
-void KalmanFilter::calcKF(const VectorXd &z, const MatrixXd &z_pred) {
-    VectorXd y = z - z_pred;
+void KalmanFilter::calcKF(const VectorXd &y) {
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;
     MatrixXd Si = S.inverse();
@@ -44,21 +41,13 @@ void KalmanFilter::calcKF(const VectorXd &z, const MatrixXd &z_pred) {
     P_ = (I - K * H_) * P_;
 }
 
-void KalmanFilter::Update(const VectorXd &x) {
-    calcKF(x, H_ * x_);
+void KalmanFilter::Update(const VectorXd &z) {
+    calcKF(z - H_ * x_);
 }
 
-void KalmanFilter::UpdateEKF(const VectorXd &x) {
+void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float pho = sqrt(x_(0) * x_(0) + x_(1) * x_(1));
-
   float chi = atan2(x_(1), x_(0));
-
-  while (chi > M_PI) {
-	chi -= 2.* M_PI;
-  }
-  while (chi < -M_PI) {
-	chi += 2.* M_PI;
-  }
 
   float phodot = 0;
   if (pho != 0) {
@@ -66,8 +55,19 @@ void KalmanFilter::UpdateEKF(const VectorXd &x) {
   	phodot = (x_(0) * x_(2) + x_(1) * x_(3)) / pho;
   }
 
-  VectorXd z = VectorXd(3); 
-  z << pho, chi, phodot;
-  calcKF(x,  z);
+  VectorXd x = VectorXd(3); 
+  x << pho, chi, phodot;
+  VectorXd y = z - x;
+
+  chi = y(1);
+
+  while (chi > M_PI) {
+    chi -= 2.* M_PI;
+  }
+  while (chi < -M_PI) {
+    chi += 2.* M_PI;
+  }
+  y(1) = chi;
+  calcKF(y);
 }
 
